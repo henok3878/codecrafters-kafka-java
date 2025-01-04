@@ -37,8 +37,8 @@ public class Main {
       int correlationId = readInt32(buffer);
     
 
-      ByteBuffer outputBuffer = ByteBuffer.allocate(16);
-      int message_size = 12;
+      ByteBuffer outputBuffer = ByteBuffer.allocate(24);
+      int message_size = 20;
       outputBuffer.putInt(message_size);
       outputBuffer.putInt(correlationId);
       if(apiVersion < minSupportedAPIVersion || apiVersion > maxSupportedAPIVersion) {
@@ -49,6 +49,8 @@ public class Main {
       outputBuffer.putShort((short)apiKey); 
       outputBuffer.putShort(minSupportedAPIVersion); // min Api version
       outputBuffer.putShort(maxSupportedAPIVersion); // max Api version
+      outputBuffer.putInt(0); // throttle time 
+      outputBuffer.putInt(0); // tag buffer 
       out = clientSocket.getOutputStream();
       out.write(outputBuffer.array());
       out.flush();
