@@ -37,21 +37,24 @@ public class Main {
       int correlationId = readInt32(buffer);
     
 
-      ByteBuffer outputBuffer = ByteBuffer.allocate(28);
-      int message_size = 4 + 2 + 4 + 2 + 2 + 2 + 4 + 1;
+      int message_size = 4 + 2 + 1 + 2 + 2 + 2 + 1 + 4 + 1;
+
+      ByteBuffer outputBuffer = ByteBuffer.allocate(4 + messageSize);
       outputBuffer.putInt(message_size);
       outputBuffer.putInt(correlationId);
+
       if(apiVersion < minSupportedAPIVersion || apiVersion > maxSupportedAPIVersion) {
         outputBuffer.putShort((short)35); // Error code for unsupported version
       }else{
         outputBuffer.putShort((short)0); // Error code for no error
       }
-      outputBuffer.putInt(1); // number of api keys supported 
+      outputBuffer.put((byte)2); // number of api keys supported, since api keys is compact array we use N + 1 to represent N elements
       outputBuffer.putShort((short)apiKey); 
       outputBuffer.putShort(minSupportedAPIVersion); // min Api version
       outputBuffer.putShort(maxSupportedAPIVersion); // max Api version
+      outputBuffer.put((byte)0); // api key level tag buffer representing null array in compact array format
       outputBuffer.putInt(0); // throttle time 
-      outputBuffer.put((byte)0); // tag buffer 
+      outputBuffer.put((byte)0); // tag buffer of size 0 represents null array in compact array format 
       out = clientSocket.getOutputStream();
       out.write(outputBuffer.array());
       out.flush();
