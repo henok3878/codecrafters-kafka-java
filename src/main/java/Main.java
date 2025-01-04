@@ -6,14 +6,15 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 
 public class Main {
-  public static void main(String[] args){
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
+  public static void main(String[] args) {
+    // You can use print statements as follows for debugging, they'll be visible
+    // when running tests.
     System.err.println("Logs from your program will appear here!");
-    
+
     ServerSocket serverSocket = null;
     Socket clientSocket = null;
     OutputStream out = null;
-    InputStream  in = null;
+    InputStream in = null;
     int port = 9092;
     try {
       serverSocket = new ServerSocket(port);
@@ -22,26 +23,25 @@ public class Main {
       serverSocket.setReuseAddress(true);
       // Wait for connection from client.
       clientSocket = serverSocket.accept();
-      in = clientSocket.getInputStream(); 
-      byte[] messageSizeBytes = new byte[4]; 
+      in = clientSocket.getInputStream();
+      byte[] messageSizeBytes = new byte[4];
       in.read(messageSizeBytes);
       int messageSize = ByteBuffer.wrap(messageSizeBytes).getInt();
-      byte[] requestBytes = new byte[messageSize]; 
+      byte[] requestBytes = new byte[messageSize];
       in.read(requestBytes);
-      byte[] correlationIdBytes = new byte[4];
-      for(int i = 5; i < 9; i++){
-        correlationIdBytes[i-5] = requestBytes[i];
-      }
-      int correlationId = ByteBuffer.wrap(correlationIdBytes).getInt(); 
+      ByteBuffer buffer = ByteBuffer.wrap(requestBytes);
+      short apiKey = readInt16(buffer);
+      short apiVersion = readInt16(buffer);
+      int correlationId = readInt32(buffer);
 
-      ByteBuffer outputBuffer = ByteBuffer.allocate(8); 
-      int message_size = 4; 
-      outputBuffer.putInt(message_size); 
-      outputBuffer.putInt(correlationId); 
+      ByteBuffer outputBuffer = ByteBuffer.allocate(8);
+      int message_size = 4;
+      outputBuffer.putInt(message_size);
+      outputBuffer.putInt(correlationId);
       out = clientSocket.getOutputStream();
-      out.write(outputBuffer.array()); 
-      out.flush(); 
-      
+      out.write(outputBuffer.array());
+      out.flush();
+
     } catch (IOException e) {
       System.out.println("IOException: " + e.getMessage());
     } finally {
@@ -49,15 +49,23 @@ public class Main {
         if (clientSocket != null) {
           clientSocket.close();
         }
-        if(out != null){
-          out.close(); 
+        if (out != null) {
+          out.close();
         }
-        if(in != null){
-          in.close(); 
-        } 
+        if (in != null) {
+          in.close();
+        }
       } catch (IOException e) {
         System.out.println("IOException: " + e.getMessage());
       }
     }
+  }
+
+  private static short readInt16(ByteBuffer buffer) {
+    return buffer.getShort();
+  }
+
+  private static int readInt32(ByteBuffer buffer) {
+    return buffer.getInt();
   }
 }
