@@ -16,8 +16,8 @@ public class Main {
     OutputStream out = null;
     InputStream in = null;
     int port = 9092;
-    int minSupportedAPIVersion = 0;
-    int maxSupportedAPIVersion = 4; 
+    short minSupportedAPIVersion = 0;
+    short maxSupportedAPIVersion = 4; 
     try {
       serverSocket = new ServerSocket(port);
       // Since the tester restarts your program quite often, setting SO_REUSEADDR
@@ -37,8 +37,8 @@ public class Main {
       int correlationId = readInt32(buffer);
     
 
-      ByteBuffer outputBuffer = ByteBuffer.allocate(10);
-      int message_size = 4;
+      ByteBuffer outputBuffer = ByteBuffer.allocate(16);
+      int message_size = 12;
       outputBuffer.putInt(message_size);
       outputBuffer.putInt(correlationId);
       if(apiVersion < minSupportedAPIVersion || apiVersion > maxSupportedAPIVersion) {
@@ -46,6 +46,9 @@ public class Main {
       }else{
         outputBuffer.putShort((short)0); // Error code for no error
       }
+      outputBuffer.putShort((short)apiKey); 
+      outputBuffer.putShort(minSupportedAPIVersion); // min Api version
+      outputBuffer.putShort(maxSupportedAPIVersion); // max Api version
       out = clientSocket.getOutputStream();
       out.write(outputBuffer.array());
       out.flush();
