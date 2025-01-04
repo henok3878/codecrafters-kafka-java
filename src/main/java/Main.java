@@ -38,7 +38,7 @@ public class Main {
     
 
       ByteBuffer outputBuffer = ByteBuffer.allocate(28);
-      int message_size = 24;
+      int message_size = 4 + 2 + 4 + 2 + 2 + 2 + 4 + 1;
       outputBuffer.putInt(message_size);
       outputBuffer.putInt(correlationId);
       if(apiVersion < minSupportedAPIVersion || apiVersion > maxSupportedAPIVersion) {
@@ -51,7 +51,7 @@ public class Main {
       outputBuffer.putShort(minSupportedAPIVersion); // min Api version
       outputBuffer.putShort(maxSupportedAPIVersion); // max Api version
       outputBuffer.putInt(0); // throttle time 
-      outputBuffer.putInt(0); // tag buffer 
+      outputBuffer.put((byte)0); // tag buffer 
       out = clientSocket.getOutputStream();
       out.write(outputBuffer.array());
       out.flush();
