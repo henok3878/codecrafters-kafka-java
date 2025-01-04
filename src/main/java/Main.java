@@ -46,7 +46,7 @@ public class Main {
       }else{
         outputBuffer.putShort((short)0); // Error code for no error
       }
-      outputBuffer.putShort((short)apiKey); 
+      outputBuffer.putShort((short)18); 
       outputBuffer.putShort(minSupportedAPIVersion); // min Api version
       outputBuffer.putShort(maxSupportedAPIVersion); // max Api version
       outputBuffer.putInt(0); // throttle time 
