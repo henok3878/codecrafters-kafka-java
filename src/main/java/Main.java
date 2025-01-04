@@ -37,8 +37,8 @@ public class Main {
       int correlationId = readInt32(buffer);
     
 
-      ByteBuffer outputBuffer = ByteBuffer.allocate(24);
-      int message_size = 20;
+      ByteBuffer outputBuffer = ByteBuffer.allocate(28);
+      int message_size = 24;
       outputBuffer.putInt(message_size);
       outputBuffer.putInt(correlationId);
       if(apiVersion < minSupportedAPIVersion || apiVersion > maxSupportedAPIVersion) {
@@ -46,6 +46,7 @@ public class Main {
       }else{
         outputBuffer.putShort((short)0); // Error code for no error
       }
+      outputBuffer.putInt(1); // number of api keys supported 
       outputBuffer.putShort((short)apiKey); 
       outputBuffer.putShort(minSupportedAPIVersion); // min Api version
       outputBuffer.putShort(maxSupportedAPIVersion); // max Api version
