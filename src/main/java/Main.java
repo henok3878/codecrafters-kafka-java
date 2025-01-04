@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,6 +12,8 @@ public class Main {
     
     ServerSocket serverSocket = null;
     Socket clientSocket = null;
+    OutputStream out = null;
+    InputStream  in = null;
     int port = 9092;
     try {
       serverSocket = new ServerSocket(port);
@@ -19,13 +22,24 @@ public class Main {
       serverSocket.setReuseAddress(true);
       // Wait for connection from client.
       clientSocket = serverSocket.accept();
-      ByteBuffer byteBuffer = ByteBuffer.allocate(8); 
-      int correlationId = 7; 
+      in = clientSocket.getInputStream(); 
+      byte[] messageSizeBytes = new byte[4]; 
+      in.read(messageSizeBytes);
+      int messageSize = ByteBuffer.wrap(messageSizeBytes).getInt();
+      byte[] requestBytes = new byte[messageSize]; 
+      in.read(requestBytes);
+      byte[] correlationIdBytes = new byte[4];
+      for(int i = 5; i < 9; i++){
+        correlationIdBytes[i-5] = requestBytes[i];
+      }
+      int correlationId = ByteBuffer.wrap(correlationIdBytes).getInt(); 
+
+      ByteBuffer outputBuffer = ByteBuffer.allocate(8); 
       int message_size = 4; 
-      byteBuffer.putInt(message_size); 
-      byteBuffer.putInt(correlationId); 
-      OutputStream out = clientSocket.getOutputStream();
-      out.write(byteBuffer.array()); 
+      outputBuffer.putInt(message_size); 
+      outputBuffer.putInt(correlationId); 
+      out = clientSocket.getOutputStream();
+      out.write(outputBuffer.array()); 
       out.flush(); 
       
     } catch (IOException e) {
@@ -35,6 +49,12 @@ public class Main {
         if (clientSocket != null) {
           clientSocket.close();
         }
+        if(out != null){
+          out.close(); 
+        }
+        if(in != null){
+          in.close(); 
+        } 
       } catch (IOException e) {
         System.out.println("IOException: " + e.getMessage());
       }
