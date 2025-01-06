@@ -73,7 +73,14 @@ public class Main {
         short apiVersion = readInt16(buffer);
         int correlationId = readInt32(buffer);
 
+        short apiKey75 = 75; 
+        short apiKey75MInVersion = 0; 
+        short apiKey75MaxVersion = 0; 
+    
+
+
         messageSize = 4 + 2 + 1 + 2 + 2 + 2 + 1 + 4 + 1;
+        messageSize += (2 + 2 + 2 + 1); // for APIKey 75 entry in the response
 
         ByteBuffer outputBuffer = ByteBuffer.allocate(4 + messageSize);
         outputBuffer.putInt(messageSize);
@@ -84,11 +91,15 @@ public class Main {
         } else {
           outputBuffer.putShort((short) 0); // Error code for no error
         }
-        outputBuffer.put((byte) 2); // number of api keys supported, since api keys is compact array we use N + 1 to
+        outputBuffer.put((byte) 3); // number of api keys supported, since api keys is compact array we use N + 1 to
                                     // represent N elements
         outputBuffer.putShort((short) apiKey);
         outputBuffer.putShort(minSupportedAPIVersion); // min Api version
         outputBuffer.putShort(maxSupportedAPIVersion); // max Api version
+        outputBuffer.put((byte) 0); // api key level tag buffer representing null array in compact array format
+        outputBuffer.putShort(apiKey75);
+        outputBuffer.putShort(apiKey75MInVersion);
+        outputBuffer.putShort(apiKey75MaxVersion);
         outputBuffer.put((byte) 0); // api key level tag buffer representing null array in compact array format
         outputBuffer.putInt(0); // throttle time
         outputBuffer.put((byte) 0); // tag buffer of size 0 represents null array in compact array format
