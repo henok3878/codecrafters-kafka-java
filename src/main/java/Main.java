@@ -4,6 +4,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 public class Main {
   static short minSupportedAPIVersion = 0;
@@ -15,9 +16,7 @@ public class Main {
     System.err.println("Logs from your program will appear here!");
 
     ServerSocket serverSocket = null;
-    Socket clientSocket = null;
-    OutputStream out = null;
-    InputStream in = null;
+    List<Socket> clientSockets = new java.util.ArrayList<Socket>();
     int port = 9092;
 
     try {
@@ -25,15 +24,25 @@ public class Main {
       // Since the tester restarts your program quite often, setting SO_REUSEADDR
       // ensures that we don't run into 'Address already in use' errors
       serverSocket.setReuseAddress(true);
-      // Wait for connection from client.
-      clientSocket = serverSocket.accept();
-      handleClient(clientSocket);
+      while (true) {
+        // Wait for connection from client.
+        final Socket client = serverSocket.accept();
+        clientSockets.add(client);
+        Thread thread = new Thread(() -> {
+          handleClient(client);
+        });
+        thread.start();
+      }
     } catch (IOException e) {
       System.out.println("IOException: " + e.getMessage());
     } finally {
       try {
-        if (clientSocket != null) {
-          clientSocket.close();
+        if (clientSockets.size() > 0) {
+          for (Socket clientSocket : clientSockets) {
+            if (clientSocket != null) {
+              clientSocket.close();
+            }
+          }
         }
 
       } catch (IOException e) {
@@ -52,7 +61,7 @@ public class Main {
         byte[] messageSizeBytes = new byte[4];
         in.read(messageSizeBytes);
         int messageSize = ByteBuffer.wrap(messageSizeBytes).getInt();
-        if(messageSize == -1){
+        if (messageSize == -1) {
           System.out.println("Connection closed by client");
           break;
         }
